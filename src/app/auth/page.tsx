@@ -3,7 +3,14 @@
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@supabase/supabase-js";
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
 
 function AuthForm() {
   const router = useRouter();
@@ -14,6 +21,7 @@ function AuthForm() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     if (searchParams.get("tab") === "signup") setTab("signup");
@@ -23,30 +31,67 @@ function AuthForm() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess("");
 
-    if (tab === "signup") {
-      const { error } = await supabase().auth.signUp({ email, password, options: { data: { full_name: name } } });
-      if (error) { setError(error.message); setLoading(false); return; }
-    } else {
-      const { error } = await supabase().auth.signInWithPassword({ email, password });
-      if (error) { setError(error.message); setLoading(false); return; }
+    try {
+      const supabase = getSupabase();
+
+      if (tab === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: name } },
+        });
+        if (error) {
+          setError(error.message);
+        } else {
+          setSuccess("Check your email to confirm your account, then log in.");
+          setTab("login");
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) {
+          setError(error.message);
+        } else {
+          router.push("/dashboard");
+          return;
+        }
+      }
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
     }
 
     setLoading(false);
-    router.push("/dashboard");
   };
 
   const handleGoogleLogin = async () => {
-    await supabase().auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/dashboard` } });
+    try {
+      const supabase = getSupabase();
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/dashboard` },
+      });
+    } catch (err: any) {
+      setError(err.message || "Google login failed");
+    }
   };
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
       <div className="mb-6 flex rounded-lg bg-gray-100 p-1">
-        <button onClick={() => setTab("login")} className={`flex-1 rounded-md py-2 text-sm font-medium transition ${tab === "login" ? "bg-white text-gray-900 shadow" : "text-gray-500"}`}>
+        <button
+          onClick={() => { setTab("login"); setError(""); setSuccess(""); }}
+          className={`flex-1 rounded-md py-2 text-sm font-medium transition ${tab === "login" ? "bg-white text-gray-900 shadow" : "text-gray-500"}`}
+        >
           Log In
         </button>
-        <button onClick={() => setTab("signup")} className={`flex-1 rounded-md py-2 text-sm font-medium transition ${tab === "signup" ? "bg-white text-gray-900 shadow" : "text-gray-500"}`}>
+        <button
+          onClick={() => { setTab("signup"); setError(""); setSuccess(""); }}
+          className={`flex-1 rounded-md py-2 text-sm font-medium transition ${tab === "signup" ? "bg-white text-gray-900 shadow" : "text-gray-500"}`}
+        >
           Sign Up
         </button>
       </div>
@@ -67,6 +112,7 @@ function AuthForm() {
       </div>
 
       {error && <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
+      {success && <div className="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-600">{success}</div>}
 
       <form onSubmit={handleEmailAuth} className="space-y-4">
         {tab === "signup" && (
