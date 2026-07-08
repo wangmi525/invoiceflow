@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { generateInvoicePDF } from "@/lib/pdf-generator";
@@ -35,6 +35,17 @@ export default function NewInvoicePage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [clients, setClients] = useState<{id: string; name: string; email: string; address: string}[]>([]);
+
+  useEffect(() => {
+    async function loadClients() {
+      const { data: { user } } = await supabase().auth.getUser();
+      if (!user) return;
+      const { data } = await supabase().from("customers").select("*").eq("user_id", user.id).order("name");
+      if (data) setClients(data);
+    }
+    loadClients();
+  }, []);
 
   const [form, setForm] = useState({
     invoiceNumber: `INV-${String(Date.now()).slice(-4)}`,
@@ -209,6 +220,21 @@ export default function NewInvoicePage() {
 
         <div className="rounded-xl border border-gray-200 bg-white p-6">
           <h2 className="mb-4 text-sm font-semibold text-gray-900">Client Information</h2>
+          {clients.length > 0 && (
+            <div className="mb-4">
+              <label className="mb-1 block text-xs text-gray-500">Select Existing Client</label>
+              <select
+                onChange={(e) => {
+                  const c = clients.find((cl) => cl.id === e.target.value);
+                  if (c) setForm({ ...form, clientName: c.name, clientEmail: c.email, clientAddress: c.address });
+                }}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              >
+                <option value="">-- Choose a client or fill in below --</option>
+                {clients.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+              </select>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="mb-1 block text-xs text-gray-500">Client Name</label>
