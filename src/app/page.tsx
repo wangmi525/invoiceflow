@@ -52,7 +52,7 @@ export default function Home() {
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-500">
           Create beautiful invoices in seconds. Get paid online via Stripe and PayPal.
-          Trusted by freelancers and businesses in 50+ countries.
+          Trusted by freelancers and businesses worldwide.
         </p>
         <div className="mt-10 flex items-center justify-center gap-4">
           <Link
