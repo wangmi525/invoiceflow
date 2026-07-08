@@ -1,65 +1,124 @@
-import Image from "next/image";
+import Link from "next/link";
+
+const FEATURES = [
+  {
+    icon: "📄",
+    title: "PDF Invoice Generator",
+    desc: "Create professional PDF invoices in seconds. Fill in the blanks, download instantly. No design skills needed.",
+  },
+  {
+    icon: "💳",
+    title: "Online Payments",
+    desc: "Embed Stripe and PayPal payment links directly in your invoices. Get paid faster.",
+  },
+  {
+    icon: "🌍",
+    title: "12+ Currencies",
+    desc: "USD, EUR, GBP, JPY, and more. Serve clients worldwide without conversion headaches.",
+  },
+  {
+    icon: "👤",
+    title: "Client Management",
+    desc: "Save clients, reuse info for new invoices. Never type the same details twice.",
+  },
+  {
+    icon: "🔒",
+    title: "Privacy First",
+    desc: "PDFs generated in your browser. Your data stays yours. No server upload.",
+  },
+  {
+    icon: "📊",
+    title: "Payment Tracking",
+    desc: "See which invoices are draft, sent, paid, or overdue. Stay on top of your cash flow.",
+  },
+];
+
+const STEPS = [
+  { num: "1", title: "Fill in invoice details", desc: "Add your info, client info, line items, and tax rate." },
+  { num: "2", title: "Generate & download PDF", desc: "One click to create a professional invoice PDF." },
+  { num: "3", title: "Send payment link", desc: "Client clicks the link and pays via Stripe or PayPal." },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="flex-1">
+      <section className="mx-auto max-w-7xl px-6 py-24 text-center">
+        <h1 className="mx-auto max-w-4xl text-5xl font-bold leading-tight tracking-tight text-gray-900">
+          Professional Invoices.
+          <br />
+          <span className="text-blue-600">Online Payments.</span>
+          <br />
+          Zero Hassle.
+        </h1>
+        <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-500">
+          Create beautiful invoices in seconds. Get paid online via Stripe and PayPal.
+          Trusted by freelancers and businesses in 50+ countries.
+        </p>
+        <div className="mt-10 flex items-center justify-center gap-4">
+          <Link
+            href="/auth?tab=signup"
+            className="rounded-lg bg-blue-600 px-8 py-3 text-base font-semibold text-white shadow-sm hover:bg-blue-500"
+          >
+            Start Free — No Credit Card
+          </Link>
+          <Link
+            href="/#features"
+            className="rounded-lg border border-gray-300 px-8 py-3 text-base font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            See Features
+          </Link>
+        </div>
+      </section>
+
+      <section id="features" className="bg-gray-50 py-24">
+        <div className="mx-auto max-w-7xl px-6">
+          <h2 className="text-center text-3xl font-bold text-gray-900">Everything You Need</h2>
+          <p className="mx-auto mt-3 max-w-xl text-center text-gray-500">
+            One tool to create invoices, collect payments, and manage clients.
           </p>
+          <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {FEATURES.map((f) => (
+              <div key={f.title} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <div className="text-3xl">{f.icon}</div>
+                <h3 className="mt-4 text-lg font-semibold text-gray-900">{f.title}</h3>
+                <p className="mt-2 text-sm text-gray-500">{f.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <section id="how-it-works" className="py-24">
+        <div className="mx-auto max-w-7xl px-6">
+          <h2 className="text-center text-3xl font-bold text-gray-900">How It Works</h2>
+          <div className="mt-16 grid gap-12 md:grid-cols-3">
+            {STEPS.map((s) => (
+              <div key={s.num} className="text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-lg font-bold text-white">
+                  {s.num}
+                </div>
+                <h3 className="mt-4 text-lg font-semibold text-gray-900">{s.title}</h3>
+                <p className="mt-2 text-sm text-gray-500">{s.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="bg-blue-900 py-24 text-center text-white">
+        <div className="mx-auto max-w-3xl px-6">
+          <h2 className="text-3xl font-bold">Stop Sending Ugly Invoices</h2>
+          <p className="mt-4 text-blue-200">
+            Join thousands of freelancers and businesses who get paid faster with InvoiceFlow.
+          </p>
+          <Link
+            href="/auth?tab=signup"
+            className="mt-8 inline-block rounded-lg bg-white px-8 py-3 text-base font-semibold text-blue-900 shadow-sm hover:bg-blue-50"
+          >
+            Get Started Free
+          </Link>
+        </div>
+      </section>
+    </main>
   );
 }
