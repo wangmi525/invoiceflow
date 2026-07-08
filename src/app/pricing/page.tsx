@@ -57,7 +57,7 @@ export default function PricingPage() {
       window.location.href = "/auth?tab=signup";
       return;
     }
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase().auth.getUser();
     if (!user) {
       window.location.href = "/auth?tab=signup";
       return;

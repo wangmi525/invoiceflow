@@ -82,10 +82,10 @@ export default function NewInvoicePage() {
 
   const handleSave = async (status: "draft" | "sent") => {
     setSaving(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase().auth.getUser();
     if (!user) { setSaving(false); alert("Please log in first"); return; }
     const invoice = { ...buildInvoice(status), user_id: user.id };
-    const { error } = await supabase.from("invoices").insert(invoice);
+    const { error } = await supabase().from("invoices").insert(invoice);
     setSaving(false);
     if (error) {
       alert("Save failed: " + error.message);
@@ -97,11 +97,11 @@ export default function NewInvoicePage() {
   const handleDownloadPDF = useCallback(async () => {
     setDownloading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase().auth.getUser();
       let companyName = "";
       let companyAddress = "";
       if (user) {
-        const { data: profile } = await supabase.from("user_profiles").select("company_name, company_address").eq("user_id", user.id).single();
+        const { data: profile } = await supabase().from("user_profiles").select("company_name, company_address").eq("user_id", user.id).single();
         if (profile) {
           companyName = profile.company_name || "";
           companyAddress = profile.company_address || "";

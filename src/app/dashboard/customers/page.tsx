@@ -17,7 +17,7 @@ export default function CustomersPage() {
   const [newCustomer, setNewCustomer] = useState({ name: "", email: "", address: "" });
 
   async function fetchCustomers() {
-    const { data } = await supabase.from("customers").select("*").order("created_at", { ascending: false });
+    const { data } = await supabase().from("customers").select("*").order("created_at", { ascending: false });
     if (data) setCustomers(data);
     setLoading(false);
   }
@@ -26,7 +26,7 @@ export default function CustomersPage() {
 
   const handleSave = async () => {
     if (!newCustomer.name) return;
-    await supabase.from("customers").insert(newCustomer);
+    await supabase().from("customers").insert(newCustomer);
     setNewCustomer({ name: "", email: "", address: "" });
     setShowForm(false);
     fetchCustomers();
@@ -34,7 +34,7 @@ export default function CustomersPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this client?")) return;
-    await supabase.from("customers").delete().eq("id", id);
+    await supabase().from("customers").delete().eq("id", id);
     fetchCustomers();
   };
 

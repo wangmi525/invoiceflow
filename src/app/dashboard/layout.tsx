@@ -17,14 +17,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase().auth.getSession().then(({ data: { session } }) => {
       if (!session) { router.push("/auth"); return; }
       setAuthed(true);
     });
   }, [router]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await supabase().auth.signOut();
     router.push("/auth");
   };
 

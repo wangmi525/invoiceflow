@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { createServerClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
   const { priceId, userId, email } = await req.json();
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: "subscription",
     payment_method_types: ["card"],
     customer_email: email || undefined,

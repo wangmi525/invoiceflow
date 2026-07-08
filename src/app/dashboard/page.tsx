@@ -33,9 +33,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function fetchInvoices() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase().auth.getUser();
       if (!user) { setLoading(false); return; }
-      const { data } = await supabase
+      const { data } = await supabase()
         .from("invoices")
         .select("*")
         .eq("user_id", user.id)

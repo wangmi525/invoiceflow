@@ -16,9 +16,9 @@ export default function SettingsPage() {
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase().auth.getUser();
       if (!user) return;
-      const { data } = await supabase.from("user_profiles").select("*").eq("user_id", user.id).single();
+      const { data } = await supabase().from("user_profiles").select("*").eq("user_id", user.id).single();
       if (data) {
         setCompany({
           name: data.company_name || "",
@@ -34,9 +34,9 @@ export default function SettingsPage() {
   }, []);
 
   const handleSave = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase().auth.getUser();
     if (!user) return;
-    await supabase.from("user_profiles").upsert({
+    await supabase().from("user_profiles").upsert({
       user_id: user.id,
       company_name: company.name,
       company_address: company.address,

@@ -25,10 +25,10 @@ export default function AuthPage() {
     setError("");
 
     if (tab === "signup") {
-      const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name } } });
+      const { error } = await supabase().auth.signUp({ email, password, options: { data: { full_name: name } } });
       if (error) { setError(error.message); setLoading(false); return; }
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase().auth.signInWithPassword({ email, password });
       if (error) { setError(error.message); setLoading(false); return; }
     }
 
@@ -37,7 +37,7 @@ export default function AuthPage() {
   };
 
   const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/dashboard` } });
+    await supabase().auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/dashboard` } });
   };
 
   return (
