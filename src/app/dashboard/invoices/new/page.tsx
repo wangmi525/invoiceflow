@@ -2,8 +2,15 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { generateInvoicePDF } from "@/lib/pdf-generator";
+
+const FREE_MONTHLY_LIMIT = 5;
+
+function startOfMonth(date = new Date()) {
+  return new Date(date.getFullYear(), date.getMonth(), 1).toISOString();
+}
 
 const CURRENCIES = [
   { code: "USD", symbol: "$" },
@@ -36,15 +43,25 @@ export default function NewInvoicePage() {
   const [saving, setSaving] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [clients, setClients] = useState<{id: string; name: string; email: string; address: string}[]>([]);
+  const [checkingLimit, setCheckingLimit] = useState(true);
+  const [atLimit, setAtLimit] = useState(false);
 
   useEffect(() => {
-    async function loadClients() {
+    async function checkAccess() {
       const { data: { user } } = await supabase().auth.getUser();
-      if (!user) return;
-      const { data } = await supabase().from("customers").select("*").eq("user_id", user.id).order("name");
-      if (data) setClients(data);
+      if (!user) { setCheckingLimit(false); return; }
+
+      const [{ data: profileData }, { data: invoiceData }] = await Promise.all([
+        supabase().from("user_profiles").select("plan").eq("user_id", user.id).single(),
+        supabase().from("invoices").select("created_at").eq("user_id", user.id).gte("created_at", startOfMonth()),
+      ]);
+
+      const plan = profileData?.plan || "free";
+      const count = invoiceData?.length || 0;
+      setAtLimit(plan === "free" && count >= FREE_MONTHLY_LIMIT);
+      setCheckingLimit(false);
     }
-    loadClients();
+    checkAccess();
   }, []);
 
   const [form, setForm] = useState({
@@ -137,6 +154,28 @@ export default function NewInvoicePage() {
     }
     setDownloading(false);
   }, [form, items, subtotal, taxAmount, total]);
+
+  if (checkingLimit) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="text-sm text-gray-400">Checking plan limits...</div>
+      </div>
+    );
+  }
+
+  if (atLimit) {
+    return (
+      <div className="mx-auto max-w-2xl py-24 text-center">
+        <h1 className="text-2xl font-bold text-gray-900">Free plan limit reached</h1>
+        <p className="mt-4 text-gray-600">
+          You&apos;ve created {FREE_MONTHLY_LIMIT} invoices this month. Upgrade to Pro for unlimited invoices.
+        </p>
+        <Link href="/pricing" className="mt-6 inline-block rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-500">
+          Upgrade to Pro
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-4xl">

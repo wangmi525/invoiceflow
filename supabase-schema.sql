@@ -58,3 +58,27 @@ ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can manage own invoices" ON invoices FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users can manage own customers" ON customers FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users can manage own profile" ON user_profiles FOR ALL USING (auth.uid() = user_id);
+
+-- Enforce free plan monthly invoice limit at the database level
+CREATE OR REPLACE FUNCTION check_free_invoice_limit()
+RETURNS TRIGGER AS $$
+DECLARE
+  user_plan TEXT;
+  current_month_count INTEGER;
+BEGIN
+  SELECT plan INTO user_plan FROM user_profiles WHERE user_id = NEW.user_id;
+  IF user_plan = 'free' THEN
+    SELECT COUNT(*) INTO current_month_count FROM invoices
+    WHERE user_id = NEW.user_id AND created_at >= date_trunc('month', NOW());
+    IF current_month_count >= 5 THEN
+      RAISE EXCEPTION 'Free plan monthly invoice limit reached. Upgrade to Pro for unlimited invoices.';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS enforce_free_invoice_limit ON invoices;
+CREATE TRIGGER enforce_free_invoice_limit
+BEFORE INSERT ON invoices
+FOR EACH ROW EXECUTE FUNCTION check_free_invoice_limit();

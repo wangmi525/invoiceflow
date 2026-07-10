@@ -68,12 +68,20 @@ function AuthForm() {
   };
 
   const handleGoogleLogin = async () => {
+    setError("");
     try {
       const supabase = getSupabase();
-      await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/dashboard` },
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
+      if (error) {
+        if (error.message.toLowerCase().includes("provider is not enabled")) {
+          setError("Google login is not configured yet. Please follow the setup instructions.");
+        } else {
+          setError(error.message);
+        }
+      }
     } catch (err: any) {
       setError(err.message || "Google login failed");
     }

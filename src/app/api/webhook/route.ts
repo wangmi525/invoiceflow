@@ -18,12 +18,12 @@ export async function POST(req: NextRequest) {
     const session = event.data.object as any;
     const userId = session.client_reference_id;
     const customerId = session.customer;
+    const plan = session.metadata?.plan === "business" ? "business" : "pro";
 
     if (userId) {
       await supabase
         .from("user_profiles")
-        .update({ plan: "pro", stripe_customer_id: customerId })
-        .eq("user_id", userId);
+        .upsert({ user_id: userId, plan, stripe_customer_id: customerId }, { onConflict: "user_id" });
     }
   }
 

@@ -28,24 +28,46 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   HKD: "HK$", KRW: "₩", THB: "฿", INR: "₹",
 };
 
+const FREE_MONTHLY_LIMIT = 5;
+
+function startOfMonth(date = new Date()) {
+  return new Date(date.getFullYear(), date.getMonth(), 1).toISOString();
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [plan, setPlan] = useState<string>("free");
+  const [monthlyCount, setMonthlyCount] = useState(0);
 
-  async function fetchInvoices() {
+  async function fetchData() {
     const { data: { user } } = await supabase().auth.getUser();
     if (!user) { setLoading(false); return; }
-    const { data } = await supabase()
-      .from("invoices")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-    if (data) setInvoices(data);
+
+    const [{ data: invoiceData }, { data: profileData }] = await Promise.all([
+      supabase()
+        .from("invoices")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false }),
+      supabase().from("user_profiles").select("plan").eq("user_id", user.id).single(),
+    ]);
+
+    if (invoiceData) {
+      setInvoices(invoiceData);
+      const currentMonth = startOfMonth();
+      const count = invoiceData.filter((inv) => inv.created_at && inv.created_at >= currentMonth).length;
+      setMonthlyCount(count);
+    }
+    if (profileData) setPlan(profileData.plan || "free");
     setLoading(false);
   }
 
-  useEffect(() => { fetchInvoices(); }, []);
+  useEffect(() => { fetchData(); }, []);
+
+  const isFree = plan === "free";
+  const atLimit = isFree && monthlyCount >= FREE_MONTHLY_LIMIT;
 
   const totalPaid = invoices.filter((i) => i.status === "paid").reduce((s, i) => s + i.total, 0);
   const totalOutstanding = invoices.filter((i) => i.status === "sent").reduce((s, i) => s + i.total, 0);
@@ -55,26 +77,45 @@ export default function DashboardPage() {
     e.stopPropagation();
     if (!confirm("Delete this invoice?")) return;
     await supabase().from("invoices").delete().eq("id", id);
-    fetchInvoices();
+    fetchData();
   };
 
   const handleStatusChange = async (id: string, newStatus: string, e: React.ChangeEvent<HTMLSelectElement>) => {
     e.stopPropagation();
     await supabase().from("invoices").update({ status: newStatus }).eq("id", id);
-    fetchInvoices();
+    fetchData();
   };
 
   return (
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Invoices</h1>
-          <p className="mt-1 text-sm text-gray-500">Manage and track all your invoices</p>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-gray-900">Invoices</h1>
+            <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${plan === "business" ? "bg-purple-100 text-purple-700" : plan === "pro" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
+              {plan}
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-gray-500">
+            {isFree ? `${monthlyCount}/${FREE_MONTHLY_LIMIT} invoices this month` : "Unlimited invoices"}
+          </p>
         </div>
-        <Link href="/dashboard/invoices/new" className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-500">
-          + New Invoice
-        </Link>
+        {atLimit ? (
+          <Link href="/pricing" className="rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-400">
+            Upgrade to Pro
+          </Link>
+        ) : (
+          <Link href="/dashboard/invoices/new" className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-500">
+            + New Invoice
+          </Link>
+        )}
       </div>
+
+      {atLimit && (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          You&apos;ve reached the free plan limit of {FREE_MONTHLY_LIMIT} invoices this month. Upgrade to Pro for unlimited invoices.
+        </div>
+      )}
 
       <div className="mt-8 grid grid-cols-4 gap-4">
         {[
